@@ -1,21 +1,34 @@
 import express from "express";
-import connectDB from "./config/db.js";
 import dotenv from "dotenv";
-import userRout from './routes/userRouts.js'
+import cors from "cors";
+import cookieParser from "cookie-parser";
+import connectDB from "./config/db.js";
 
-dotenv.config({});  
+import userRoutes from "./routes/userRoutes.js";
+import messageRoutes from "./routes/messageRoute.js";
 
-const PORT = process.env.PORT || 5000;
+dotenv.config();
+
 const app = express();
+const PORT = process.env.PORT || 8000;
 
-//routes
+// ✅ CORS — MUST be first
+app.use(cors({
+  origin: "https://fictional-orbit-q7g69rj67ggpc96jg-5173.app.github.dev",
+  credentials: true,
+}));
 
-app.use("api/v1/users", userRoute);
+// middleware
+app.use(express.json());
+app.use(cookieParser());
 
+// routes
+app.use("/api/v1/users", userRoutes);
+app.use("/messages", messageRoutes);
 
+// db + server
+await connectDB();
 
-
-app.listen(PORT, () => {
-    connectDB();
-    console.log(`Server is running on port ${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`✅ Server running on ${PORT}`);
 });

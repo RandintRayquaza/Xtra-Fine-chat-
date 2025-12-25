@@ -1,39 +1,106 @@
-import User from "../models/User.js";
+import User from "../models/userModel.js";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
+// helper
+const cookieOptions = {
+  httpOnly: true,
+  secure: true,      // REQUIRED (Codespaces HTTPS)
+  sameSite: "none",  // REQUIRED (cross-origin)
+  maxAge: 24 * 60 * 60 * 1000,
+};
 
-export const register = async(req,res)=>{
- try {
-    const {fullName, username, password,confirmPassword,gender,profilePhoto} =req.body;
-    if(!fullName || !username || !password || !confirmPassword ||!gender){
-        return res.status(400).json({message:"All fiels Are requried"})
+/* REGISTER */
+export const register = async (req, res) => {
+    console.log("🔥 REGISTER CONTROLLER HIT");
+
+  try {
+    const { fullName, username, password, confirmPassword, gender } = req.body;
+
+    if (!fullName || !username || !password || !confirmPassword || !gender) {
+      return res.status(400).json({ message: "All fields are required" });
     }
 
+    if (password !== confirmPassword) {
+      return res.status(400).json({ message: "Passwords do not match" });
+    }
 
-     if(password !== confirmPassword){
-        return res.status(400).json({message:"Password and Confirm Password do not match"})
-     }
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(400).json({ message: "Username already exists" });
+    }
 
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-     const user = await User.findOne({username});
-     if(user){
-        return res.status(400).json({message:"username already exists"})
-     }
-     const hashedPassword = await bcrypt.hash(password,10);
-     
-const boyProfilePicture = `https://avatar.iran.liara.run/public/boy?username:${username}`
-const girlProfilePicture = `https://avatar.iran.liara.run/public/girly?username:${username}`
+    const profilePhoto =
+      gender === "male"
+        ? `https://avatar.iran.liara.run/public/boy?username=${username}`
+        : `https://avatar.iran.liara.run/public/girl?username=${username}`;
 
-     
-     await User.create({
-        fullName,
-        username,
-       password:hashedPassword,
-        profilePhoto:gender===male ? boyProfilePicture : girlProfilePicture,
-        gender,
-     });
- } catch (error) {
-    console.log(error);
-    
- }
-}
+    const user = await User.create({
+      fullName,
+      username,
+      password: hashedPassword,
+      profilePhoto,
+      gender,
+    });
+
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    res
+      .status(201)
+      .cookie("token", token, cookieOptions)
+      .json({ success: true, user });
+
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+/* LOGIN */
+export const login = async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    const user = await User.findOne({ username });
+    if (!user) return res.status(400).json({ message: "Invalid credentials" });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    res
+      .status(200)
+      .cookie("token", token, cookieOptions)
+      .json({ success: true, user });
+
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+/* LOGOUT */
+export const logout = async (req, res) => {
+  res
+    .status(200)
+    .cookie("token", "", {
+      ...cookieOptions,
+      expires: new Date(0),
+    })
+    .json({ success: true });
+};
+
+/* OTHER USERS */
+export const getOtherUsers = async (req, res) => {
+  const users = await User.find({ _id: { $ne: req.user.id } }).select("-password");
+  res.status(200).json({ users });
+};
