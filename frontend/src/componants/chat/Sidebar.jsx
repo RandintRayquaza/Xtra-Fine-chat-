@@ -1,106 +1,76 @@
-import React, { useState } from "react";
-import { MessageCircle, LogOut, Search } from "lucide-react";
-import { useSelector, useDispatch } from "react-redux";
+import React, { useEffect, useState } from "react";
+import { Search, LogOut } from "lucide-react";
+import { useDispatch } from "react-redux";
 import { logoutUser } from "../../redux/userSlice";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-function Sidebar() {
-  const { authUser } = useSelector((state) => state.user);
+function Sidebar({ onSelectUser }) {
+  const [users, setUsers] = useState([]);
+  const [search, setSearch] = useState("");
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const [search, setSearch] = useState("");
+  useEffect(() => {
+    axios
+      .get("https://fictional-orbit-q7g69rj67ggpc96jg-8000.app.github.dev/api/v1/users/other-users", {
+        withCredentials: true,
+      })
+      .then((res) => setUsers(res.data.users))
+      .catch(console.error);
+  }, []);
 
-  // 🔹 Mock online users (replace with backend/socket later)
-  const onlineUsers = [
-    { id: 1, username: "alex" },
-    { id: 2, username: "sara" },
-    { id: 3, username: "john" },
-    { id: 4, username: "maria" },
-  ];
-
-  const filteredUsers = onlineUsers.filter((user) =>
-    user.username.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await axios.get(
+      "https://fictional-orbit-q7g69rj67ggpc96jg-8000.app.github.dev/api/v1/users/logout",
+      { withCredentials: true }
+    );
     dispatch(logoutUser());
     navigate("/");
   };
 
+  const filtered = users.filter((u) =>
+    u.username.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
-    <aside className="w-72 h-full bg-white border-r border-black/10 flex flex-col">
-      
-      {/* HEADER */}
-      <div className="p-5 border-b border-black/10 flex items-center gap-3">
-        <MessageCircle />
-        <span className="font-semibold text-lg">Chats</span>
-      </div>
+    <aside className="h-full bg-white border-r border-black/10 flex flex-col">
+      <div className="p-4 border-b font-semibold">Chats</div>
 
-      {/* USER INFO */}
-      <div className="px-5 py-4 border-b border-black/10">
-        <p className="text-sm text-gray-500">Logged in as</p>
-        <p className="font-medium text-gray-900">
-          {authUser?.username || "Guest"}
-        </p>
-      </div>
-
-      {/* SEARCH BAR */}
-      <div className="p-4 border-b border-black/10">
+      <div className="p-3">
         <div className="relative">
-          <Search
-            size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-          />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
           <input
-            type="text"
+            className="w-full pl-9 pr-3 py-2 border rounded-lg text-sm"
             placeholder="Search users..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="
-              w-full pl-9 pr-3 py-2.5
-              rounded-xl
-              border border-black/10
-              text-sm
-              focus:outline-none focus:ring-2 focus:ring-black/10
-            "
           />
         </div>
       </div>
 
-      {/* ONLINE USERS */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-2">
-        {filteredUsers.length > 0 ? (
-          filteredUsers.map((user) => (
-            <div
-              key={user.id}
-              className="
-                flex items-center gap-3
-                p-3 rounded-xl cursor-pointer
-                hover:bg-black/5 transition
-              "
-            >
-              {/* Online indicator */}
-              <span className="w-2 h-2 rounded-full bg-green-500" />
-              <p className="font-medium text-gray-900">
-                {user.username}
-              </p>
-            </div>
-          ))
-        ) : (
-          <p className="text-sm text-gray-500 text-center mt-6">
-            No users found
-          </p>
-        )}
+      <div className="flex-1 overflow-y-auto">
+        {filtered.map((user) => (
+          <div
+            key={user._id}
+            onClick={() => onSelectUser(user)}
+            className="flex items-center gap-3 px-4 py-3 hover:bg-black/5 cursor-pointer"
+          >
+            <img
+              src={user.profilePhoto}
+              alt=""
+              className="w-9 h-9 rounded-full"
+            />
+            <span>{user.username}</span>
+          </div>
+        ))}
       </div>
 
-      {/* LOGOUT */}
       <button
         onClick={handleLogout}
-        className="m-4 mt-auto flex items-center gap-2 text-sm text-red-600 hover:underline"
+        className="m-4 flex items-center gap-2 text-sm text-red-600"
       >
-        <LogOut size={16} />
-        Logout
+        <LogOut size={16} /> Logout
       </button>
     </aside>
   );

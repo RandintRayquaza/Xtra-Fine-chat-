@@ -1,26 +1,12 @@
-import React, { useEffect, useRef } from "react";
+import React from "react";
 import Message from "./Message";
 
 function MessagesContainer({ messages }) {
-  const bottomRef = useRef(null);
-
-  // 🔥 Auto-scroll to bottom on new message
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
   return (
-    <div className="h-full overflow-y-auto px-4 py-6 space-y-3">
+    <div className="flex-1 overflow-y-auto p-4 bg-[#F7F5FF] space-y-2">
       {messages.map((msg) => (
-        <Message
-          key={msg.id}
-          text={msg.text}
-          isOwn={msg.isOwn}
-        />
+        <Message key={msg.id} text={msg.text} isOwn={msg.isOwn} />
       ))}
-
-      {/* scroll anchor */}
-      <div ref={bottomRef} />
     </div>
   );
 }

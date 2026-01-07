@@ -1,35 +1,20 @@
+import { Routes, Route, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import axios from "axios";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setAuthUser } from "./redux/userSlice";
-import { Routes, Route, useLocation } from "react-router-dom"; // ✅ FIX
+import { connectSocket, disconnectSocket } from "./socket/socket";
 
-import { Toaster } from "react-hot-toast";
-
-/* hero */
-import Header from "./componants/hero/Header.jsx";
-import HomePage from "./componants/hero/HomePage.jsx";
-
-/* auth */
-import SignUP from "./componants/auth/SignUp.jsx";
-import LogIn from "./componants/auth/LogIn.jsx";
-
-/* routes */
-import ProtectedRoute from "./componants/routes/ProtectedRoute.jsx";
-import PublicRoute from "./componants/routes/PublicRoute.jsx";
-
-/* chat */
-import ChatLayout from "./componants/chat/ChatLayout.jsx";
-
-/* ui */
-import SmoothScroll from "./componants/ui/SmoothScroll.jsx";
-import CustomCursor from "./componants/ui/CustomCursor.jsx";
+import ChatLayout from "./componants/chat/ChatLayout";
+import ProtectedRoute from "./componants/routes/ProtectedRoute";
+import PublicRoute from "./componants/routes/PublicRoute";
 
 function App() {
   const location = useLocation();
-  const isChat = location.pathname.startsWith("/chat");
   const dispatch = useDispatch();
+  const { authUser, authChecked } = useSelector((state) => state.user);
 
+  // 🔄 Restore login
   useEffect(() => {
     const restoreUser = async () => {
       try {
@@ -37,65 +22,48 @@ function App() {
           "https://fictional-orbit-q7g69rj67ggpc96jg-8000.app.github.dev/api/v1/users/me",
           { withCredentials: true }
         );
-
         dispatch(setAuthUser(res.data.user));
       } catch {
-        console.log("No active session");
+        dispatch(setAuthUser(null));
       }
     };
 
     restoreUser();
-  }, []);
+  }, [dispatch]);
+
+  // 🔌 Connect socket ONLY after auth check
+  useEffect(() => {
+    if (!authChecked) return;
+
+    if (authUser?._id) {
+      connectSocket(authUser._id);
+    }
+
+    return () => {
+      disconnectSocket();
+    };
+  }, [authUser, authChecked]);
 
   return (
-    <>
-      <Toaster position="top-right" />
+    <Routes>
+      <Route
+        path="/chat"
+        element={
+          <ProtectedRoute>
+            <ChatLayout />
+          </ProtectedRoute>
+        }
+      />
 
-      {!isChat && <Header />}
-      {!isChat && <CustomCursor />}
-
-      {!isChat ? (
-        <SmoothScroll>
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <PublicRoute>
-                  <HomePage />
-                </PublicRoute>
-              }
-            />
-            <Route
-              path="/login"
-              element={
-                <PublicRoute>
-                  <LogIn />
-                </PublicRoute>
-              }
-            />
-            <Route
-              path="/signup"
-              element={
-                <PublicRoute>
-                  <SignUP />
-                </PublicRoute>
-              }
-            />
-          </Routes>
-        </SmoothScroll>
-      ) : (
-        <Routes>
-          <Route
-            path="/chat"
-            element={
-              <ProtectedRoute>
-                <ChatLayout />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      )}
-    </>
+      <Route
+        path="/login"
+        element={
+          <PublicRoute>
+            <div>Login Page</div>
+          </PublicRoute>
+        }
+      />
+    </Routes>
   );
 }
 

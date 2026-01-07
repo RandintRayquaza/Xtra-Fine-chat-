@@ -1,41 +1,66 @@
-import React, { useState } from "react";
-import MessagesContainer from "./MessagesContainer";
-import MessageInput from "./MessageInput";
+import { useEffect, useRef, useState } from "react";
+import axios from "axios";
+import { useSelector } from "react-redux";
+import { getSocket } from "../../socket/socket";
 
-function ChatWindow() {
-  const [messages, setMessages] = useState([
-    { id: 1, text: "Hey 👋", isOwn: false },
-    { id: 2, text: "Hi! How are you?", isOwn: true },
-  ]);
+function ChatWindow({ selectedUser }) {
+  const { authUser } = useSelector((state) => state.user);
+  const [messages, setMessages] = useState([]);
+  const activeChatRef = useRef(null);
 
-  const handleSendMessage = (text) => {
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        text,
-        isOwn: true,
-      },
-    ]);
-  };
+  useEffect(() => {
+    activeChatRef.current = selectedUser;
+  }, [selectedUser]);
+
+  // load history
+  useEffect(() => {
+    if (!selectedUser) return;
+
+    const load = async () => {
+      const res = await axios.get(
+        `https://fictional-orbit-q7g69rj67ggpc96jg-8000.app.github.dev/messages/${selectedUser._id}`,
+        { withCredentials: true }
+      );
+      setMessages(res.data.messages);
+    };
+
+    load();
+  }, [selectedUser]);
+
+  // realtime listener
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+
+    const onReceive = (message) => {
+      const active = activeChatRef.current;
+      if (!active) return;
+
+      if (
+        message.senderId === active._id ||
+        message.receiverId === active._id
+      ) {
+        setMessages((prev) => [...prev, message]);
+      }
+    };
+
+    socket.on("receiveMessage", onReceive);
+    return () => socket.off("receiveMessage", onReceive);
+  }, []);
+
+  if (!selectedUser) {
+    return <div className="p-6 text-gray-400">Select a chat</div>;
+  }
 
   return (
-    <section className="flex flex-col h-full w-full bg-white">
-      {/* CHAT HEADER */}
-      <div className="h-16 px-6 flex items-center border-b border-black/10 flex-shrink-0">
-        <h2 className="font-semibold text-gray-900">Chat</h2>
+    <div className="flex flex-col h-full">
+      <div className="flex-1 overflow-y-auto p-4">
+        {messages.map((m) => (
+          <div key={m._id}>{m.message}</div>
+        ))}
       </div>
-
-      {/* MESSAGES (THIS MUST FLEX) */}
-      <div className="flex-1 overflow-hidden bg-[#F7F5FF]">
-        <MessagesContainer messages={messages} />
-      </div>
-
-      {/* INPUT (FIXED HEIGHT) */}
-      <div className="flex-shrink-0">
-        <MessageInput onSend={handleSendMessage} />
-      </div>
-    </section>
+      <MessageInput receiverId={selectedUser._id} />
+    </div>
   );
 }
 

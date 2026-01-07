@@ -1,35 +1,38 @@
-import React, { useState } from "react";
-import { Send } from "lucide-react";
+import { useState } from "react";
+import axios from "axios";
+import { useSelector } from "react-redux";
+import { getSocket } from "../../socket/socket";
 
-function MessageInput({ onSend }) {
+function MessageInput({ receiverId }) {
   const [text, setText] = useState("");
+  const { authUser } = useSelector((state) => state.user);
 
-  const handleSend = () => {
+  const send = async () => {
     if (!text.trim()) return;
-    onSend(text);
+
+    const res = await axios.post(
+      `https://fictional-orbit-q7g69rj67ggpc96jg-8000.app.github.dev/messages/sendmessage/${receiverId}`,
+      { message: text },
+      { withCredentials: true }
+    );
+
+    const socket = getSocket();
+    socket.emit("sendMessage", {
+      receiverId,
+      message: res.data.newMessage,
+    });
+
     setText("");
   };
 
   return (
-    <div className="p-4 bg-white border-t border-black/10 flex gap-3">
+    <div className="p-3 border-t flex gap-2">
       <input
-        type="text"
-        placeholder="Type a message..."
+        className="flex-1 border px-3 py-2"
         value={text}
         onChange={(e) => setText(e.target.value)}
-        onKeyDown={(e) => e.key === "Enter" && handleSend()}
-        className="
-          flex-1 px-4 py-3 rounded-xl
-          border border-black/10
-          focus:outline-none focus:ring-2 focus:ring-black/10
-        "
       />
-      <button
-        onClick={handleSend}
-        className="px-4 rounded-xl bg-black text-white"
-      >
-        <Send size={18} />
-      </button>
+      <button onClick={send}>Send</button>
     </div>
   );
 }

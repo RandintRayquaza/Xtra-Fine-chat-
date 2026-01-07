@@ -1,3 +1,4 @@
+import http from "http";
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
@@ -5,38 +6,33 @@ import cookieParser from "cookie-parser";
 import connectDB from "./config/db.js";
 
 import userRoutes from "./routes/userRoutes.js";
-import messageRoutes from "./routes/messageRoute.js";
+import messageRoutes from "./routes/messageRoutes.js";
+import { initSocket } from "./socket/socket.js";
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 8000;
+const server = http.createServer(app);
 
-// ✅ CORS — MUST be first
-app.use(cors({
-  origin: "https://fictional-orbit-q7g69rj67ggpc96jg-5173.app.github.dev",
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: "https://fictional-orbit-q7g69rj67ggpc96jg-5173.app.github.dev",
+    credentials: true,
+  })
+);
 
-// middleware
 app.use(express.json());
 app.use(cookieParser());
-//test
 
-
-// routes
 app.use("/api/v1/users", userRoutes);
 app.use("/messages", messageRoutes);
 
-// db + server
 await connectDB();
 
-app.listen(PORT, "0.0.0.0", () => {
+// 🔥 INIT SOCKET ON SAME SERVER
+initSocket(server);
+
+const PORT = process.env.PORT || 8000;
+server.listen(PORT, "0.0.0.0", () => {
   console.log(`✅ Server running on ${PORT}`);
 });
-
-app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(500).json({ message: "Internal server error" });
-});
-

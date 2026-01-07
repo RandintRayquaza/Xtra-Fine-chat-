@@ -169,7 +169,7 @@ function SignUp() {
             {loading ? "Creating account..." : "Sign Up"}
           </button>
 
-          <p className="text-sm text-center text-gray-600">
+          <p className="text-sm text-center text-purple-700">
             Already have an account?{" "}
             <Link to="/login" className="font-medium text-black underline">
               Log in
