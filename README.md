@@ -51,7 +51,7 @@ Both frontend and backend live in the same repository for easier development and
 
 🚀 Getting Started (Local Setup)
 1. Clone the repository
-git clone https://github.com/Roaring-Moon0/xtra-fine.git
+git clone https://github.com/Roaring-Moon0/xtra-fine-chat.git
 cd xtra-fine
 
 2. Install dependencies
