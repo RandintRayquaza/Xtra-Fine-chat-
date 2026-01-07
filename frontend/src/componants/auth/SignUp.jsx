@@ -1,13 +1,26 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { User, Lock, UserCircle, Eye, EyeOff } from "lucide-react";
 import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { setAuthUser } from "../../redux/userSlice";
 
 function SignUp() {
   const cardRef = useRef(null);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const { authUser } = useSelector((state) => state.user);
+
+  // ✅ Redirect if already logged in
+  useEffect(() => {
+    if (authUser) {
+      navigate("/chat");
+    }
+  }, [authUser, navigate]);
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -18,15 +31,16 @@ function SignUp() {
   });
 
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   /* ---------------- ANIMATION ---------------- */
-  useEffect(() => {
+  useGSAP(() => {
     gsap.fromTo(
       cardRef.current,
-      { opacity: 0, y: 30 },
-      { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }
+      { opacity: 0, y: 40 },
+      { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }
     );
-  }, []);
+  });
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -48,38 +62,40 @@ function SignUp() {
     }
 
     try {
-      await axios.post(
+      setLoading(true);
+
+      const res = await axios.post(
         "https://fictional-orbit-q7g69rj67ggpc96jg-8000.app.github.dev/api/v1/users/register",
         formData,
         { withCredentials: true }
       );
 
+      dispatch(setAuthUser(res.data.user));
       toast.success("Account created 🎉");
-      navigate("/");
+      navigate("/chat");
     } catch (err) {
       toast.error(err.response?.data?.message || "Something went wrong");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <section className="min-h-screen flex items-center justify-center px-4">
+    <section className="min-h-screen flex items-center justify-center bg-[#F7F5FF] px-4">
       <div
         ref={cardRef}
-        className="
-          w-full max-w-md
-          bg-white dark:bg-black
-          border border-black/10 dark:border-white/10
-          rounded-2xl
-          p-8
-        "
+        className="w-full max-w-md bg-white border border-black/10 rounded-3xl p-8 sm:p-10"
       >
-        <h1 className="text-2xl font-semibold text-center text-black dark:text-white mb-6">
-          Create your account
-        </h1>
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Create your account
+          </h1>
+          <p className="text-gray-600">
+            Join Xtra Fine Chat and start communicating
+          </p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-
-          {/* FULL NAME */}
+        <form onSubmit={handleSubmit} className="space-y-5">
           <Input
             icon={<UserCircle size={18} />}
             name="fullName"
@@ -88,7 +104,6 @@ function SignUp() {
             onChange={handleChange}
           />
 
-          {/* USERNAME */}
           <Input
             icon={<User size={18} />}
             name="username"
@@ -97,7 +112,6 @@ function SignUp() {
             onChange={handleChange}
           />
 
-          {/* PASSWORD */}
           <div className="relative">
             <Input
               icon={<Lock size={18} />}
@@ -110,13 +124,12 @@ function SignUp() {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-black/60 dark:text-white/60"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
             >
-              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
 
-          {/* CONFIRM PASSWORD */}
           <Input
             icon={<Lock size={18} />}
             name="confirmPassword"
@@ -126,39 +139,39 @@ function SignUp() {
             onChange={handleChange}
           />
 
-          {/* GENDER */}
-          <div className="flex gap-6 text-sm text-black dark:text-white mt-2">
+          <div className="flex gap-4 mt-2">
             {["male", "female"].map((g) => (
-              <label key={g} className="flex items-center gap-2 cursor-pointer">
+              <label
+                key={g}
+                className={`flex-1 cursor-pointer rounded-xl border px-4 py-3 text-center text-sm font-medium ${
+                  formData.gender === g
+                    ? "border-black bg-black text-white"
+                    : "border-black/10 text-gray-700 hover:border-black"
+                }`}
+              >
                 <input
                   type="radio"
                   name="gender"
                   value={g}
                   onChange={handleChange}
-                  className="accent-black dark:accent-white"
+                  className="hidden"
                 />
                 {g.charAt(0).toUpperCase() + g.slice(1)}
               </label>
             ))}
           </div>
 
-          {/* SUBMIT */}
           <button
             type="submit"
-            className="
-              w-full mt-6
-              py-3 rounded-xl
-              bg-black text-white
-              dark:bg-white dark:text-black
-              font-medium
-            "
+            disabled={loading}
+            className="w-full mt-6 py-3.5 rounded-xl bg-black text-white font-semibold hover:opacity-90 transition disabled:opacity-50"
           >
-            Sign Up
+            {loading ? "Creating account..." : "Sign Up"}
           </button>
 
-          <p className="text-sm text-center text-black/70 dark:text-white/70">
+          <p className="text-sm text-center text-gray-600">
             Already have an account?{" "}
-            <Link to="/login" className="underline">
+            <Link to="/login" className="font-medium text-black underline">
               Log in
             </Link>
           </p>
@@ -168,24 +181,15 @@ function SignUp() {
   );
 }
 
-/* ---------------- REUSABLE INPUT ---------------- */
 function Input({ icon, ...props }) {
   return (
     <div className="relative">
-      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-black/50 dark:text-white/50">
+      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
         {icon}
       </span>
       <input
         {...props}
-        className="
-          w-full pl-10 pr-4 py-3
-          rounded-xl
-          bg-transparent
-          border border-black/10 dark:border-white/10
-          text-black dark:text-white
-          placeholder:text-black/40 dark:placeholder:text-white/40
-          focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white
-        "
+        className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-white border border-black/10 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10"
       />
     </div>
   );

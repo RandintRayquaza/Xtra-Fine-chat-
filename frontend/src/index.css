@@ -1,10 +1,6 @@
 @import "tailwindcss";
 
-/* Enable class-based dark mode */
-@custom-variant dark (&:where(.dark, .dark *));
-
-/* Global theme colors */
 body {
-  @apply bg-white text-black;
+  padding-top: 80px;
 }
 

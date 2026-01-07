@@ -5,14 +5,15 @@ import jwt from "jsonwebtoken";
 // helper
 const cookieOptions = {
   httpOnly: true,
-  secure: true,      // REQUIRED (Codespaces HTTPS)
-  sameSite: "none",  // REQUIRED (cross-origin)
+  secure: false,     // 🔥 allow Postman
+  sameSite: "lax",
   maxAge: 24 * 60 * 60 * 1000,
 };
 
+
 /* REGISTER */
 export const register = async (req, res) => {
-    console.log("🔥 REGISTER CONTROLLER HIT");
+   
 
   try {
     const { fullName, username, password, confirmPassword, gender } = req.body;
@@ -101,6 +102,21 @@ export const logout = async (req, res) => {
 
 /* OTHER USERS */
 export const getOtherUsers = async (req, res) => {
-  const users = await User.find({ _id: { $ne: req.user.id } }).select("-password");
+  const users = await User.find({
+    _id: { $ne: req.user._id },
+  }).select("-password");
+
   res.status(200).json({ users });
+};
+/* GET ME */
+export const getMe = async (req, res) => {
+  try {
+    res.status(200).json({
+      user: req.user,
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to fetch user",
+    });
+  }
 };

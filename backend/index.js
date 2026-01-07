@@ -21,6 +21,8 @@ app.use(cors({
 // middleware
 app.use(express.json());
 app.use(cookieParser());
+//test
+
 
 // routes
 app.use("/api/v1/users", userRoutes);
@@ -32,3 +34,9 @@ await connectDB();
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`✅ Server running on ${PORT}`);
 });
+
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ message: "Internal server error" });
+});
+

@@ -1,11 +1,7 @@
 import jwt from "jsonwebtoken";
+import User from "../models/userModel.js";
 
-const isAuthenticated = (req, res, next) => {
-  // ✅ VERY IMPORTANT: allow preflight
-  if (req.method === "OPTIONS") {
-    return next();
-  }
-
+const isAuthenticated = async (req, res, next) => {
   try {
     const token = req.cookies.token;
 
@@ -14,11 +10,17 @@ const isAuthenticated = (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = { id: decoded.id };
 
+    const user = await User.findById(decoded.id).select("-password");
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+
+    req.user = user;
     next();
-  } catch (error) {
-    return res.status(401).json({ message: "Invalid token" });
+  } catch (err) {
+    console.error("Auth error:", err.message);
+    return res.status(401).json({ message: "Authentication failed" });
   }
 };
 
