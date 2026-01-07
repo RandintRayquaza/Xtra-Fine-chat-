@@ -6,12 +6,28 @@ function ChatLayout() {
   const [selectedUser, setSelectedUser] = useState(null);
 
   return (
-    <div className="fixed inset-0 flex">
-      <div className="w-72 border-r">
+    <div className="fixed inset-0 flex bg-white">
+      {/* SIDEBAR */}
+      <div
+        className={`
+          ${selectedUser ? "hidden md:block" : "block"}
+          w-full md:w-80
+          h-screen
+          border-r
+        `}
+      >
         <Sidebar onSelectUser={setSelectedUser} />
       </div>
 
-      <div className="flex-1">
+      {/* CHAT */}
+      <div
+        className={`
+          ${selectedUser ? "block" : "hidden md:flex"}
+          flex-1
+          h-screen
+          bg-[#F7F5FF]
+        `}
+      >
         <ChatWindow
           selectedUser={selectedUser}
           onBack={() => setSelectedUser(null)}

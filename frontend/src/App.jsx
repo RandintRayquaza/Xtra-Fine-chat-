@@ -1,20 +1,41 @@
 import { Routes, Route, useLocation } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 import { useEffect } from "react";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { setAuthUser } from "./redux/userSlice";
-import { connectSocket, disconnectSocket } from "./socket/socket";
+import { connectSocket } from "./socket/socket";
 
-import ChatLayout from "./componants/chat/ChatLayout";
-import ProtectedRoute from "./componants/routes/ProtectedRoute";
-import PublicRoute from "./componants/routes/PublicRoute";
+/* hero */
+import Header from "./componants/hero/Header.jsx";
+import HomePage from "./componants/hero/HomePage.jsx";
+
+/* about */
+import AboutPage from "./componants/About/AboutPage.jsx";
+
+/* auth */
+import SignUP from "./componants/auth/SignUp.jsx";
+import LogIn from "./componants/auth/LogIn.jsx";
+
+/* chat */
+import ChatLayout from "./componants/chat/ChatLayout.jsx";
+
+/* routes */
+import ProtectedRoute from "./componants/routes/ProtectedRoute.jsx";
+import PublicRoute from "./componants/routes/PublicRoute.jsx";
+
+/* ui */
+import SmoothScroll from "./componants/ui/SmoothScroll.jsx";
+import CustomCursor from "./componants/ui/CustomCursor.jsx";
 
 function App() {
   const location = useLocation();
+  const isChat = location.pathname.startsWith("/chat");
+
   const dispatch = useDispatch();
   const { authUser, authChecked } = useSelector((state) => state.user);
 
-  // 🔄 Restore login
+  // 🔥 RESTORE USER SESSION ON REFRESH
   useEffect(() => {
     const restoreUser = async () => {
       try {
@@ -31,39 +52,88 @@ function App() {
     restoreUser();
   }, [dispatch]);
 
-  // 🔌 Connect socket ONLY after auth check
+  // 🔌 SOCKET CONNECTION (STABLE)
   useEffect(() => {
     if (!authChecked) return;
-
     if (authUser?._id) {
       connectSocket(authUser._id);
     }
-
-    return () => {
-      disconnectSocket();
-    };
   }, [authUser, authChecked]);
 
+  // 📱 MOBILE VISIBILITY FIX
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible" && authUser?._id) {
+        connectSocket(authUser._id);
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [authUser]);
+
   return (
-    <Routes>
-      <Route
-        path="/chat"
-        element={
-          <ProtectedRoute>
-            <ChatLayout />
-          </ProtectedRoute>
-        }
+    <>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          style: {
+            background: "rgba(0,0,0,0.7)",
+            color: "#fff",
+            backdropFilter: "blur(10px)",
+          },
+        }}
       />
 
-      <Route
-        path="/login"
-        element={
-          <PublicRoute>
-            <div>Login Page</div>
-          </PublicRoute>
-        }
-      />
-    </Routes>
+      {/* Header & cursor ONLY on non-chat pages */}
+      {!isChat && <Header />}
+      {!isChat && <CustomCursor />}
+
+      {/* ROUTES */}
+      {!isChat ? (
+        <SmoothScroll>
+          <Routes>
+            {/* HOME */}
+            <Route path="/" element={<HomePage />} />
+
+            {/* ABOUT */}
+            <Route path="/about" element={<AboutPage />} />
+
+            {/* AUTH */}
+            <Route
+              path="/login"
+              element={
+                <PublicRoute>
+                  <LogIn />
+                </PublicRoute>
+              }
+            />
+
+            <Route
+              path="/signup"
+              element={
+                <PublicRoute>
+                  <SignUP />
+                </PublicRoute>
+              }
+            />
+          </Routes>
+        </SmoothScroll>
+      ) : (
+        <Routes>
+          {/* CHAT */}
+          <Route
+            path="/chat"
+            element={
+              <ProtectedRoute>
+                <ChatLayout />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      )}
+    </>
   );
 }
 

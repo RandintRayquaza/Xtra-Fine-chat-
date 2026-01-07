@@ -1,6 +1,6 @@
 import HeroSection from "./HeroSection";
 import FeaturesSection from "./FeaturesSection";
-import UseCasesSection from "./UseCasesSection";
+import UseCasesSection from "./HowItWorksSection";
 import CTASection from "./CTASection";
 import Footer from "./Footer";
 

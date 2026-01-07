@@ -3,13 +3,18 @@ import { io } from "socket.io-client";
 let socket = null;
 
 export const connectSocket = (userId) => {
-  if (!socket && userId) {
+  if (!userId) return socket;
+
+  if (!socket) {
     socket = io(
       "https://fictional-orbit-q7g69rj67ggpc96jg-8000.app.github.dev",
       {
         query: { userId },
         transports: ["websocket"],
         withCredentials: true,
+        reconnection: true,
+        reconnectionAttempts: Infinity,
+        reconnectionDelay: 1000,
       }
     );
 
@@ -17,8 +22,8 @@ export const connectSocket = (userId) => {
       console.log("🟢 Socket connected:", socket.id);
     });
 
-    socket.on("disconnect", () => {
-      console.log("🔴 Socket disconnected");
+    socket.on("disconnect", (reason) => {
+      console.log("🔴 Socket disconnected:", reason);
     });
   }
 

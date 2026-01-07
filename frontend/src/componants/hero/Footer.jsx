@@ -30,7 +30,7 @@ function Footer() {
             </li>
             <li>
               <Link to="/" className="hover:text-white transition">
-                Use Cases
+                How It Works
               </Link>
             </li>
             <li>

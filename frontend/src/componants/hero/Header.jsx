@@ -1,28 +1,31 @@
 import React, { useState } from "react";
 import { Menu, X, MessageCircle } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 
 function Header() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { authUser } = useSelector((state) => state.user);
 
   const handleChatClick = () => {
-    if (!authUser) {
-      navigate("/login");
-    } else {
-      navigate("/chat");
-    }
+    navigate(authUser ? "/chat" : "/login");
     setOpen(false);
   };
 
-  const navLinks = [
-    { name: "Home", to: "/" },
-    { name: "Features", to: "/#features" },
-    { name: "Use Cases", to: "/#use-cases" },
-    { name: "About", to: "/#about" },
-  ];
+  const scrollToSection = (id) => {
+    setOpen(false);
+
+    // If not on home, go home first
+    if (location.pathname !== "/") {
+      navigate("/", { state: { scrollTo: id } });
+      return;
+    }
+
+    const el = document.getElementById(id);
+    el?.scrollIntoView({ behavior: "smooth" });
+  };
 
   return (
     <header className="w-full bg-white border-b border-black/5 fixed top-0 z-50">
@@ -35,15 +38,15 @@ function Header() {
 
         {/* DESKTOP NAV */}
         <nav className="hidden md:flex gap-10 text-sm font-medium text-gray-700">
-          {navLinks.map((item) => (
-            <Link
-              key={item.name}
-              to={item.to}
-              className="hover:text-purple-600 transition"
-            >
-              {item.name}
-            </Link>
-          ))}
+          <button onClick={() => scrollToSection("features")} className="hover:text-purple-600">
+            Features
+          </button>
+          <button onClick={() => scrollToSection("how-it-works")} className="hover:text-purple-600">
+            How It Works
+          </button>
+          <Link to="/about" className="hover:text-purple-600">
+            About
+          </Link>
         </nav>
 
         {/* CTA */}
@@ -56,10 +59,7 @@ function Header() {
           </button>
 
           {/* MOBILE MENU */}
-          <button
-            onClick={() => setOpen(!open)}
-            className="md:hidden text-black"
-          >
+          <button onClick={() => setOpen(!open)} className="md:hidden">
             {open ? <X /> : <Menu />}
           </button>
         </div>
@@ -69,20 +69,13 @@ function Header() {
       {open && (
         <div className="md:hidden px-6 pb-6 bg-white border-t border-black/5">
           <nav className="flex flex-col gap-4 text-sm text-gray-700">
-            {navLinks.map((item) => (
-              <Link
-                key={item.name}
-                to={item.to}
-                onClick={() => setOpen(false)}
-                className="hover:text-purple-600"
-              >
-                {item.name}
-              </Link>
-            ))}
+            <button onClick={() => scrollToSection("features")}>Features</button>
+            <button onClick={() => scrollToSection("how-it-works")}>How It Works</button>
+            <Link to="/about" onClick={() => setOpen(false)}>About</Link>
 
             <button
               onClick={handleChatClick}
-              className="mt-2 inline-flex px-5 py-2 rounded-md border border-purple-500 text-purple-600 font-medium w-fit"
+              className="mt-2 px-5 py-2 rounded-md border border-purple-500 text-purple-600 font-medium w-fit"
             >
               {authUser ? "Open Chat" : "Let’s Chat"}
             </button>
