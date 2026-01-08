@@ -1,10 +1,10 @@
 import { Routes, Route, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { useEffect } from "react";
-import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { setAuthUser } from "./redux/userSlice";
 import { connectSocket } from "./socket/socket";
+import api from "./lib/api";
 
 /* hero */
 import Header from "./componants/hero/Header.jsx";
@@ -35,14 +35,11 @@ function App() {
   const dispatch = useDispatch();
   const { authUser, authChecked } = useSelector((state) => state.user);
 
-  // 🔥 RESTORE USER SESSION ON REFRESH
+  // 🔥 RESTORE USER SESSION ON REFRESH (CENTRALIZED API)
   useEffect(() => {
     const restoreUser = async () => {
       try {
-        const res = await axios.get(
-          "https://fictional-orbit-q7g69rj67ggpc96jg-8000.app.github.dev/api/v1/users/me",
-          { withCredentials: true }
-        );
+        const res = await api.get("/api/v1/users/me");
         dispatch(setAuthUser(res.data.user));
       } catch {
         dispatch(setAuthUser(null));

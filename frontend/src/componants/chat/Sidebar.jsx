@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { Search, LogOut } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { logoutUser } from "../../redux/userSlice";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import api from "../../lib/api";
 
 function Sidebar({ onSelectUser }) {
   const [users, setUsers] = useState([]);
@@ -12,25 +12,29 @@ function Sidebar({ onSelectUser }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // 🔥 FETCH USERS ONCE
+  // 🔥 FETCH USERS (CENTRALIZED API)
   useEffect(() => {
-    axios
-      .get(
-        "https://fictional-orbit-q7g69rj67ggpc96jg-8000.app.github.dev/api/v1/users/other-users",
-        { withCredentials: true }
-      )
-      .then((res) => setUsers(res.data.users));
+    const fetchUsers = async () => {
+      try {
+        const res = await api.get("/api/v1/users/other-users");
+        setUsers(res.data.users);
+      } catch (err) {
+        console.error("Failed to load users");
+      }
+    };
+
+    fetchUsers();
   }, []);
 
   // 🔴 LOGOUT
   const handleLogout = async () => {
-    await axios.get(
-      "https://fictional-orbit-q7g69rj67ggpc96jg-8000.app.github.dev/api/v1/users/logout",
-      { withCredentials: true }
-    );
-
-    dispatch(logoutUser());
-    navigate("/");
+    try {
+      await api.get("/api/v1/users/logout");
+      dispatch(logoutUser());
+      navigate("/");
+    } catch (err) {
+      console.error("Logout failed");
+    }
   };
 
   const filteredUsers = users.filter((u) =>
@@ -60,7 +64,7 @@ function Sidebar({ onSelectUser }) {
         </div>
       </div>
 
-      {/* USERS LIST (SCROLLABLE) */}
+      {/* USERS LIST */}
       <div className="flex-1 overflow-y-auto">
         {filteredUsers.map((user) => (
           <div
@@ -84,7 +88,7 @@ function Sidebar({ onSelectUser }) {
         ))}
       </div>
 
-      {/* LOGOUT — ALWAYS VISIBLE (MOBILE + DESKTOP) */}
+      {/* LOGOUT — ALWAYS VISIBLE */}
       <div className="sticky bottom-0 bg-white border-t">
         <button
           onClick={handleLogout}
