@@ -1,12 +1,12 @@
-import http from "http";
 import express from "express";
+import http from "http";
 import dotenv from "dotenv";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import connectDB from "./config/db.js";
 
+import connectDB from "./config/db.js";
 import userRoutes from "./routes/userRoutes.js";
-import messageRoutes from "./routes/messageRoute.js"; 
+import messageRoutes from "./routes/messageRoutes.js";
 import { initSocket } from "./socket/socket.js";
 
 dotenv.config();
@@ -14,17 +14,13 @@ dotenv.config();
 const app = express();
 const server = http.createServer(app);
 
-
-
-import cors from "cors";
-
+// ✅ CORS — PROD SAFE
 app.use(
   cors({
-    origin: process.env.CLIENT_URL, 
+    origin: process.env.CLIENT_URL,
     credentials: true,
   })
 );
-
 
 app.use(express.json());
 app.use(cookieParser());
@@ -34,7 +30,7 @@ app.use("/messages", messageRoutes);
 
 await connectDB();
 
-// 🔥 INIT SOCKET ON SAME SERVER
+// 🔌 SOCKET
 initSocket(server);
 
 const PORT = process.env.PORT || 8000;
