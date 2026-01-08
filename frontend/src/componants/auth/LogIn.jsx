@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { User, Lock, Eye, EyeOff } from "lucide-react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import axios from "axios";
+import api from "../../lib/api";
 import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -52,13 +52,7 @@ function LogIn() {
 
     try {
       setLoading(true);
-
-      const res = await axios.post(
-        "https://fictional-orbit-q7g69rj67ggpc96jg-8000.app.github.dev/api/v1/users/login",
-        formData,
-        { withCredentials: true }
-      );
-
+    const res = await api.post("/api/v1/users/login", formData);
       dispatch(setAuthUser(res.data.user));
       toast.success("Welcome back 👋");
       navigate("/chat");
