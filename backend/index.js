@@ -14,12 +14,15 @@ dotenv.config();
 const app = express();
 const server = http.createServer(app);
 
+import cors from "cors";
+
 app.use(
   cors({
-    origin: "https://fictional-orbit-q7g69rj67ggpc96jg-5173.app.github.dev",
+    origin: process.env.CLIENT_URL,
     credentials: true,
   })
 );
+
 
 app.use(express.json());
 app.use(cookieParser());
