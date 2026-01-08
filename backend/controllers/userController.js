@@ -2,19 +2,15 @@ import User from "../models/userModel.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-// helper
 const cookieOptions = {
   httpOnly: true,
-  secure: false,     // 🔥 allow Postman
-  sameSite: "lax",
+  secure: process.env.NODE_ENV === "production", // ✅ REQUIRED
+  sameSite: "none",                               // ✅ REQUIRED FOR VERCEL
   maxAge: 24 * 60 * 60 * 1000,
 };
 
-
-/* REGISTER */
+/* SIGNUP */
 export const register = async (req, res) => {
-   
-
   try {
     const { fullName, username, password, confirmPassword, gender } = req.body;
 
@@ -26,8 +22,8 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: "Passwords do not match" });
     }
 
-    const existingUser = await User.findOne({ username });
-    if (existingUser) {
+    const exists = await User.findOne({ username });
+    if (exists) {
       return res.status(400).json({ message: "Username already exists" });
     }
 
@@ -42,8 +38,8 @@ export const register = async (req, res) => {
       fullName,
       username,
       password: hashedPassword,
-      profilePhoto,
       gender,
+      profilePhoto,
     });
 
     const token = jwt.sign(
@@ -55,7 +51,7 @@ export const register = async (req, res) => {
     res
       .status(201)
       .cookie("token", token, cookieOptions)
-      .json({ success: true, user });
+      .json({ user });
 
   } catch (err) {
     res.status(500).json({ message: "Server error" });
@@ -68,10 +64,14 @@ export const login = async (req, res) => {
     const { username, password } = req.body;
 
     const user = await User.findOne({ username });
-    if (!user) return res.status(400).json({ message: "Invalid credentials" });
+    if (!user) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
 
     const token = jwt.sign(
       { id: user._id },
@@ -82,9 +82,9 @@ export const login = async (req, res) => {
     res
       .status(200)
       .cookie("token", token, cookieOptions)
-      .json({ success: true, user });
+      .json({ user });
 
-  } catch (err) {
+  } catch {
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -100,23 +100,13 @@ export const logout = async (req, res) => {
     .json({ success: true });
 };
 
-/* OTHER USERS */
+/* GET OTHER USERS */
 export const getOtherUsers = async (req, res) => {
-  const users = await User.find({
-    _id: { $ne: req.user._id },
-  }).select("-password");
-
+  const users = await User.find({ _id: { $ne: req.user._id } }).select("-password");
   res.status(200).json({ users });
 };
+
 /* GET ME */
 export const getMe = async (req, res) => {
-  try {
-    res.status(200).json({
-      user: req.user,
-    });
-  } catch (err) {
-    res.status(500).json({
-      message: "Failed to fetch user",
-    });
-  }
+  res.status(200).json({ user: req.user });
 };

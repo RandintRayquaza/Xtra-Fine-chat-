@@ -3,18 +3,20 @@ import {
   register,
   login,
   logout,
-  getMe,
   getOtherUsers,
+  getMe,
 } from "../controllers/userController.js";
-import isAuthenticated from "../middleware/isAuthenticated.js";
+import protect from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.post("/register", register);
+// AUTH
+router.post("/signup", register); // ✅ FIXED
 router.post("/login", login);
-router.get("/logout", logout);
-router.get("/other-users", isAuthenticated,getOtherUsers);
+router.post("/logout", logout);
 
-router.get("/me", isAuthenticated, getMe);
+// USERS
+router.get("/me", protect, getMe);
+router.get("/other-users", protect, getOtherUsers);
 
 export default router;

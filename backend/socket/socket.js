@@ -13,10 +13,7 @@ export const initSocket = (server) => {
 
   io.on("connection", (socket) => {
     const userId = socket.handshake.query.userId;
-
-    if (userId) {
-      userSocketMap[userId] = socket.id;
-    }
+    if (userId) userSocketMap[userId] = socket.id;
 
     socket.on("disconnect", () => {
       for (const id in userSocketMap) {
@@ -29,12 +26,5 @@ export const initSocket = (server) => {
   });
 };
 
-// ✅ SAFE ACCESSOR
-export const getIO = () => {
-  if (!io) {
-    throw new Error("Socket.io not initialized");
-  }
-  return io;
-};
-
-export const getReceiverSocketId = (id) => userSocketMap[id];
+export const getReceiverSocketId = (userId) => userSocketMap[userId];
+export const getIO = () => io;
