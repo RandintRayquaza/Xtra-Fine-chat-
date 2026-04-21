@@ -1,0 +1,120 @@
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.Spotlight-V100/
+.Trashes/
+._*
+
+# Editor / IDE
+.vscode/
+.idea/
+*.iml
+*.suo
+*.user
+*.userossc
+*.sln.docstates
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+!.env.sample
+*.pem
+*.key
+*.p12
+*.crt
+
+# Dependencies
+node_modules/
+vendor/
+
+# Build / cache / temp
+dist/
+build/
+out/
+target/
+.cache/
+.tmp/
+tmp/
+temp/
+coverage/
+.nyc_output/
+*.tsbuildinfo
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.python-version
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+
+# Java / Kotlin / Gradle
+.gradle/
+*.class
+
+# Go
+bin/
+*.test
+*.out
+
+# Rust
+/target/
+Cargo.lock
+
+# .NET
+bin/
+obj/
+
+# C / C++
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+*.exe
+
+# Archives
+*.zip
+*.tar
+*.tgz
+*.gz
+*.bz2
+*.xz
+*.7z
+
+# GitHub / CI local artifacts
+*.local
+
+# Docker
+.docker/
+docker-data/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraform.lock.hcl
