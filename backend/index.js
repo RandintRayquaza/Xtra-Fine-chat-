@@ -14,7 +14,7 @@ dotenv.config();
 const app = express();
 const server = http.createServer(app);
 
-// ✅ CORS — PROD SAFE
+// CORS configuration
 app.use(
   cors({
     origin: process.env.CLIENT_URL,
@@ -30,10 +30,10 @@ app.use("/messages", messageRoutes);
 
 await connectDB();
 
-// 🔌 SOCKET
+// Initialize socket
 initSocket(server);
 
 const PORT = process.env.PORT || 8000;
 server.listen(PORT, "0.0.0.0", () => {
-  console.log(`✅ Server running on ${PORT}`);
+  console.log(` Server running on ${PORT}`);
 });

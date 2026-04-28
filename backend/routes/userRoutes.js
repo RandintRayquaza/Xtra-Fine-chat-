@@ -11,7 +11,7 @@ import isAuthenticated from "../middleware/isAuthenticated.js";
 const router = express.Router();
 
 // AUTH
-router.post("/signup", register); // ✅ FIXED
+router.post("/signup", register);
 router.post("/login", login);
 router.post("/logout", logout);
 

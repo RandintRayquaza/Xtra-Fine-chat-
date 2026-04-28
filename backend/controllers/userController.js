@@ -9,7 +9,6 @@ const cookieOptions = {
   maxAge: 24 * 60 * 60 * 1000,
 };
 
-/* SIGNUP */
 export const register = async (req, res) => {
   try {
     const { fullName, username, password, confirmPassword, gender } = req.body;
@@ -58,7 +57,6 @@ export const register = async (req, res) => {
   }
 };
 
-/* LOGIN */
 export const login = async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -89,7 +87,6 @@ export const login = async (req, res) => {
   }
 };
 
-/* LOGOUT */
 export const logout = async (req, res) => {
   res
     .clearCookie("token", {
