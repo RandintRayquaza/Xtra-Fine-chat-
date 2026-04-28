@@ -6,13 +6,13 @@ function ChatLayout() {
   const [selectedUser, setSelectedUser] = useState(null);
 
   return (
-    <div className="fixed inset-0 flex bg-white">
+    <div className="min-h-screen flex bg-white overflow-hidden">
       {/* SIDEBAR */}
       <div
         className={`
           ${selectedUser ? "hidden md:block" : "block"}
           w-full md:w-80
-          h-screen
+          h-full min-h-screen
           border-r
         `}
       >
@@ -24,7 +24,7 @@ function ChatLayout() {
         className={`
           ${selectedUser ? "block" : "hidden md:flex"}
           flex-1
-          h-screen
+          h-full min-h-screen
           bg-[#F7F5FF]
         `}
       >

@@ -42,7 +42,7 @@ function Sidebar({ onSelectUser }) {
   );
 
   return (
-    <aside className="h-screen flex flex-col bg-white border-r border-black/10">
+    <aside className="h-full min-h-screen flex flex-col bg-white border-r border-black/10">
       {/* HEADER */}
       <div className="p-4 border-b font-semibold text-lg">
         Chats

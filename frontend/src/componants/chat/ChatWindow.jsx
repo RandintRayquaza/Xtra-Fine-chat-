@@ -110,7 +110,7 @@ function ChatWindow({ selectedUser, onBack }) {
   }
 
   return (
-    <section className="flex flex-col h-full min-h-[100dvh] md:min-h-0 bg-[#F7F5FF]">
+    <section className="flex flex-col flex-1 min-h-full bg-[#F7F5FF]">
       {/* HEADER */}
       <div className="h-16 px-4 flex items-center gap-3 border-b bg-white">
         <button onClick={onBack} className="md:hidden">

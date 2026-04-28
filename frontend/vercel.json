@@ -1,7 +1,15 @@
 {
   "rewrites": [
     {
-      "source": "/((?!assets/).*)",
+      "source": "/socket.io/:path*",
+      "destination": "/socket.io/:path*"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "/api/:path*"
+    },
+    {
+      "source": "/((?!assets/|socket.io/|api/).*)",
       "destination": "/index.html"
     }
   ]
